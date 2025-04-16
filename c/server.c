@@ -1,46 +1,61 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<sys/types.h>  //系统数据类型定义
-#include<sys/socket.h>  //套接字相关函数和结构体
-#include<netinet/in.h>  //网络地址结构体和常量
-#include<unistd.h>        //UNIX标准函数
-// time
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<unistd.h>
+#include<string.h>
+#include "tlv_box.h"
 
-#define MAXLINE 1024     //最大消息场地
-#define PORT 5035      //监听端口号
+#define MAXLINE 1024 // 定义缓冲区大小
+#define PORT 5035    // 定义服务器端口号
 
-int main(){
+int main() {
+    // 创建 UDP 套接字
+    int socketDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
+    int number;
+    socklen_t addressLength;
+    char message[MAXLINE]; // 用于接收客户端消息
 
-  int socketDescriptor = socket(AF_INET, SOCK_DGRAM, 0);//AF_INET表示IPv4协议，SOCK_DGRAM表示UDP协议
-  int number;     //用于存储接受/发送的字节数
-  socklen_t addressLength;   //客户端地址结构的长度
-  char message[MAXLINE];   //用于存储消息的缓冲区
+    // 配置服务器地址
+    struct sockaddr_in serverAddress, clientAddress;
+    serverAddress.sin_family = AF_INET; // 使用 IPv4
+    serverAddress.sin_addr.s_addr = INADDR_ANY; // 接收来自任意地址的消息
+    serverAddress.sin_port = htons(PORT); // 设置端口号
 
-  struct sockaddr_in  serverAddress,clientAddress;
-  serverAddress.sin_family = AF_INET;          //IPv4地址族
-  serverAddress.sin_addr.s_addr=INADDR_ANY;  //监听所有网络接口
-  serverAddress.sin_port=htons(PORT);        //设置端口号
+    // 绑定套接字到指定地址和端口
+    bind(socketDescriptor, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
 
-  //将套接字与服务器地址结构绑定，使服务器能够在指定端口上接收数据。
-  bind(socketDescriptor,(struct sockaddr*)&serverAddress,sizeof(serverAddress));
+    printf("\nServer Started ...\n");
 
-  printf("\nServer Started ...\n");
+    while (1) {
+        printf("\n");
+        addressLength = sizeof(clientAddress);
+        // 接收来自客户端的消息
+        number = recvfrom(socketDescriptor, message, MAXLINE, 0, (struct sockaddr*)&clientAddress, &addressLength);
 
-  while(1){
-    printf("\n");
-    //获取客户端地址结构的长度
-    addressLength = sizeof(clientAddress);
-    //接收客户端发送的数据
-    //recvfrom函数用于接收数据，参数包括：套接字描述符、消息缓冲区、消息长度、标志、客户端地址结构和地址长度
-    //返回值为接收到的字节数
-    number = recvfrom(socketDescriptor,message,MAXLINE,0,(struct sockaddr*)&clientAddress,&addressLength);
+        if (number > 0) {
+            printf("\nReceived TLV Data from Client\n");
 
-    printf("\n Client's Message: %s ",message);
-    //检查接受的字节数
-    if(number<6)
-      perror("send error");
-    //将相同消息发送回客户端       
-    sendto(socketDescriptor,message,number,0,(struct sockaddr*)&clientAddress,addressLength);
-  }
-  return 0;
+            // 解析 TLV 数据
+            tlv_box_t *parsedBox = tlv_box_parse((unsigned char*)message, number);
+            if (parsedBox == NULL) {
+                printf("Failed to parse TLV data\n");
+                continue;
+            }
+
+            // 提取并打印 TLV 数据
+            char value;
+            if (tlv_box_get_char(parsedBox, 0x01, &value) == 0) {
+                printf("Extracted char: %c\n", value); // 打印提取的字符
+            }
+
+            // 销毁解析后的 TLV box
+            tlv_box_destroy(parsedBox);
+
+            // 回送原始消息到客户端
+            sendto(socketDescriptor, message, number, 0, (struct sockaddr*)&clientAddress, addressLength);
+        }
+    }
+    return 0;
 }

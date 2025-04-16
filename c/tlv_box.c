@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tlv_box.h"
+int tlv_box_putobject(tlv_box_t *box, int type, void *value, int length);
 
 static void tlv_box_release_tlv(value_t value)
 {
