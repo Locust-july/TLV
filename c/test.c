@@ -16,16 +16,16 @@
 #include "tlv_box.h"
 
 // 定义测试用的类型常量
-#define TEST_TYPE_0 0x00
-#define TEST_TYPE_1 0x01
-#define TEST_TYPE_2 0x02
-#define TEST_TYPE_3 0x03
-#define TEST_TYPE_4 0x04
-#define TEST_TYPE_5 0x05
-#define TEST_TYPE_6 0x06
-#define TEST_TYPE_7 0x07
-#define TEST_TYPE_8 0x08
-#define TEST_TYPE_9 0x09
+#define TEST_TYPE_0 0x0000
+#define TEST_TYPE_1 0x0001
+#define TEST_TYPE_2 0x0002
+#define TEST_TYPE_3 0x0003
+#define TEST_TYPE_4 0x0004
+#define TEST_TYPE_5 0x0005
+#define TEST_TYPE_6 0x0006
+#define TEST_TYPE_7 0x0007
+#define TEST_TYPE_8 0x0008
+#define TEST_TYPE_9 0x0009
 
 // 定义日志输出宏
 #define LOG(format,...) printf(format, ##__VA_ARGS__)
