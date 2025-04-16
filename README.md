@@ -1,3 +1,7 @@
+Premise
+----------
+该示例参考 https://github.com/Jhuster/TLV/tree/master/c 
+在该作者提供的C程序代码的基础上进行修改的。
 TLV
 ----------
 

@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "tlv_box.h"
+#include "tlv_box.h"   // 引入 tlv_box.h 头文件
 
 // 定义日志输出宏
 #define LOG(format,...) printf(format, ##__VA_ARGS__)
@@ -34,7 +34,7 @@ int main() {
     // 配置服务器地址
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET; // 使用 IPv4
-    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // 服务器地址为本地
+    serverAddress.sin_addr.s_addr = inet_addr("47.109.151.78"); // 服务器地址为本地
     serverAddress.sin_port = htons(PORT); // 设置端口号
 
     addressLength = sizeof(serverAddress);
@@ -61,6 +61,7 @@ int main() {
         tlv_box_destroy(box); // 销毁 TLV box
         return -1;
     }
+    //打印box创建成功消息
     LOG("boxes serialize success, %d bytes \n", tlv_box_get_size(box));
 
     tlv_box_t *boxes = tlv_box_create();  
@@ -70,6 +71,7 @@ int main() {
     LOG("boxes serialize failed !\n"); 
     return -1;
     }
+    //打印 boxes创建成功的消息
     LOG("boxes serialize success, %d bytes \n", tlv_box_get_size(boxes));
 
     LOG("Serialized nested TLV data: ");
