@@ -58,9 +58,17 @@ int main() {
         LOG("Received %zd bytes from client\n", receivedBytes);
 
         // 解析接收到的 TLV 数据
-        tlv_box_t *receivedBox = tlv_box_parse(recvMessage, receivedBytes);
-        if (receivedBox == NULL) {
+        tlv_box_t *receivedBoxes = tlv_box_parse(recvMessage, receivedBytes);
+        if (receivedBoxes == NULL) {
             printf("Failed to parse received TLV data\n");
+            continue;
+        }
+
+        // 提取嵌套的 box 对象
+        tlv_box_t *receivedBox = NULL;
+        if (tlv_box_get_object(receivedBoxes, TEST_TYPE_9, &receivedBox) != 0) {
+            printf("Failed to extract nested box from received TLV data\n");
+            tlv_box_destroy(receivedBoxes);
             continue;
         }
 
@@ -122,6 +130,7 @@ int main() {
                 for(i=0; i<length; i++) {
                 LOG("%d-", receivedBytes[i]); 
                 } 
+                LOG("\n"); 
             }
         }
         // 回送消息给客户端
@@ -134,6 +143,7 @@ int main() {
 
         // 销毁接收到的 TLV box
         tlv_box_destroy(receivedBox);
+        tlv_box_destroy(receivedBoxes);
     }
 
     close(serverDescriptor);
