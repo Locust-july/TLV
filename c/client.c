@@ -52,40 +52,31 @@ int main() {
   tlv_box_put_string(box, TEST_TYPE_7, (char *)"hello world !"); // 添加字符串
 
     // 添加字节数组
-    unsigned char array[6] = {1, 2, 3, 4, 5, 6};
-    tlv_box_put_bytes(box, TEST_TYPE_8, array, 6); 
+    unsigned char array[4] = {0xAA, 0xBB, 0xCC, 0xDD};
+    tlv_box_put_bytes(box, TEST_TYPE_9, array, 4);
 
     // 序列化 TLV 数据
     if (tlv_box_serialize(box) != 0) {
-        printf("box serialize failed !\n");
+        printf("Failed to serialize TLV box\n");
+        tlv_box_destroy(box); // 销毁 TLV box
         return -1;
     }
     LOG("boxes serialize success, %d bytes \n", tlv_box_get_size(box));
-
-    // 创建一个嵌套的 TLV box
-    tlv_box_t *boxes = tlv_box_create();  
-    tlv_box_put_object(boxes, TEST_TYPE_9, box); // 将 box 作为对象添加到 boxes 中
-
-    // 序列化嵌套的 boxes
-    if (tlv_box_serialize(boxes) != 0) {
-        LOG("boxes serialize failed !\n"); 
-        return -1;
-    }
-    LOG("boxes serialize success, %d bytes \n", tlv_box_get_size(boxes));
 
     // 发送 TLV 数据到服务器
     ssize_t sentBytes = sendto(serverDescriptor, tlv_box_get_buffer(box), tlv_box_get_size(box), 0, (struct sockaddr*)&serverAddress, addressLength);
     if (sentBytes < 0) {
         perror("Failed to send data");
-        tlv_box_destroy(boxes); // 销毁 TLV box
+        tlv_box_destroy(box); // 销毁 TLV box
         return -1;
     }
     LOG("Sent %zd bytes to server\n", sentBytes);
-/*------------------------------------------------------------接收数据-----------------------------------------------------------------------------------*/
+
     // 接收服务器回送的消息
     ssize_t receivedBytes = recvfrom(serverDescriptor, recvMessage, MAXLINE, 0, NULL, NULL);
     if (receivedBytes < 0) {
         perror("Failed to receive data");
+        tlv_box_destroy(box); // 销毁 TLV box
         return -1;
     }
     LOG("Received %zd bytes from server\n", receivedBytes);
@@ -101,6 +92,7 @@ int main() {
     tlv_box_t *receivedBox = tlv_box_parse(recvMessage, receivedBytes);   //反序列化
     if (receivedBox == NULL) {
         printf("Failed to parse received TLV data\n");
+        tlv_box_destroy(box); // 销毁 TLV box
         return -1;
     }
 
@@ -163,8 +155,8 @@ int main() {
     // 销毁接收到的 TLV box
     tlv_box_destroy(receivedBox);
 
-    // 销毁发送的 TLV box  boxes
+    // 销毁发送的 TLV box
     tlv_box_destroy(box);
-    tlv_box_destroy(boxes);
+
     return 0;
 }

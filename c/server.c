@@ -58,7 +58,7 @@ int main() {
         LOG("Received %zd bytes from client\n", receivedBytes);
 
         // 解析接收到的 TLV 数据
-        tlv_box_t *receivedBox = tlv_box_parse(recvMessage,receivedBytes);
+        tlv_box_t *receivedBox = tlv_box_parse(recvMessage, receivedBytes);
         if (receivedBox == NULL) {
             printf("Failed to parse received TLV data\n");
             continue;
@@ -120,7 +120,7 @@ int main() {
                 LOG("tlv_box_get_bytes success:  ");         
                 int i = 0;
                 for(i=0; i<length; i++) {
-                    LOG("%d-", receivedBytes[i]); 
+                LOG("%d-", receivedBytes[i]); 
                 } 
             }
         }
