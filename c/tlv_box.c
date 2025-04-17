@@ -12,6 +12,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h> // 添加头文件以使用 htonl 和 ntohl
 #include "tlv_box.h"
 int tlv_box_putobject(tlv_box_t *box, int type, void *value, int length);
 
@@ -40,9 +41,9 @@ tlv_box_t *tlv_box_parse(unsigned char *buffer, int buffersize)
 
     int offset = 0, length = 0;
     while (offset < buffersize) {
-        int type = (*(int *)(cached + offset));
+        int type = ntohl(*(int *)(cached + offset)); // 使用 ntohl 转换
         offset += sizeof(int);
-        int length = (*(int *)(cached + offset));
+        int length = ntohl(*(int *)(cached + offset)); // 使用 ntohl 转换
         offset += sizeof(int);
         tlv_box_putobject(box, type, cached+offset, length);
         offset += length;
@@ -159,9 +160,11 @@ int tlv_box_serialize(tlv_box_t *box)
     unsigned char* buffer = (unsigned char*) malloc(box->m_serialized_bytes);    
     key_list_foreach(box->m_list, node) {
         tlv_t *tlv = (tlv_t *) node->value.value;        
-        memcpy(buffer+offset, &tlv->type, sizeof(int));
+        int network_type = htonl(tlv->type); // 使用 htonl 转换
+        int network_length = htonl(tlv->length); // 使用 htonl 转换
+        memcpy(buffer+offset, &network_type, sizeof(int));
         offset += sizeof(int);        
-        memcpy(buffer+offset, &tlv->length, sizeof(int));
+        memcpy(buffer+offset, &network_length, sizeof(int));
         offset += sizeof(int);
         memcpy(buffer+offset, tlv->value, tlv->length);        
         offset += tlv->length;
